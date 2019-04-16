@@ -1,4 +1,18 @@
 #!/bin/bash
+# Copyright 2019 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 usage() { echo "Usage: $0 [-p <project id>] [-f <folder id> -b <billing id> -o <oauth_client_id>]" 1>&2; exit 1; }
 projectid() { PROJECT_ID=$(gcloud projects list --filter ${PROJECT} --format text | grep projectId | sed 's/[^ ]* *//'); }
 if [ -z $PROJECT ]; then PROJECT=openpls-demo; fi #default
@@ -34,7 +48,6 @@ if [ ! -f oauth_credentials ]; then
 else
     source oauth_credentials
 fi
-
 
 # Check if bucket for config exists and create it if not
 BUCKET=${PROJECT_ID}-terraform-config
