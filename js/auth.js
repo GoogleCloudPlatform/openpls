@@ -10,6 +10,7 @@ function onSignIn(googleUser) {
     renderers.forEach(function(callback) {
         callback();
     });
+    $("#main").css("display", "block")
 }
 
 function signOut() {
@@ -20,7 +21,6 @@ function signOut() {
 }
 
 function toggleAuthStatus(signedIn) {
-    $("#main").css("display", signedIn ? "block" : "none")
     $("#g-signout-btn").css("display", signedIn ? "block" : "none")
     $("#login").css("display", signedIn ? "none" : "block")
 }
