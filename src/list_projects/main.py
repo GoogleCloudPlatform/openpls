@@ -33,6 +33,7 @@ def list_projects(request):
         }
 
         return ('', 204, headers)
+        
     if request.method == 'GET':
         client_id = os.getenv("OAUTH_CLIENT_ID")
         token = request.headers['Authorization'].split(' ').pop()

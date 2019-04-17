@@ -1,0 +1,26 @@
+name: OpenPLS
+baseurl: "" # the subpath of your site, e.g. /blog
+url: "" # the base hostname & protocol for your site, e.g. http://example.com
+
+# Build settings
+markdown: kramdown
+highlighter: rouge
+incremental: true
+include: ['_pages']
+
+# Exclude from processing.
+# The following items will not be processed, by default. Create a custom list
+# to override the default setting.
+exclude:
+  - provision.sh
+  - terraform.tf
+  - CONTRIBUTING.md
+  - README.md
+  - LICENSE
+  - terraform
+  - src
+  - credentials.json
+  - oauth_credentials
+  - Gemfile
+  - Gemfile.lock
+  - dist

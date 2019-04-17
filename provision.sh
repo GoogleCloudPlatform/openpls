@@ -43,7 +43,7 @@ projectid
 
 # Check if we have oauth credentials
 if [ ! -f oauth_credentials ]; then
-    if [ -z $OAUTH_CLIENT_ID ]; then echo "You must supply an oauth_client_id created using https://console.cloud.google.com/apis/credentials which whitelists storage.googleapis.com"; usage; fi
+    if [ -z $OAUTH_CLIENT_ID ]; then echo "You must supply an oauth_client_id created using https://console.cloud.google.com/apis/credentials which whitelists storage.googleapis.com and localhost:4000 as authorized javascript origins"; usage; fi
     echo "OAUTH_CLIENT_ID=${OAUTH_CLIENT_ID}" > oauth_credentials
 else
     source oauth_credentials
@@ -63,7 +63,11 @@ export GOOGLE_APPLICATION_CREDENTIALS=credentials.json
 terraform init -backend-config="bucket=${BUCKET}" -backend-config="prefix=terraform/state" -backend-config="project=${PROJECT_ID}" -backend-config="credentials=credentials.json" terraform
 terraform apply -var project="${PROJECT}" -var oauth_client_id="${OAUTH_CLIENT_ID}" terraform
 WEB_FRONTEND=$(terraform output web_frontend)
-gsutil cp -r website/** $WEB_FRONTEND
-LIST_FUNCTION=$(terraform output function_list_projects)
-echo "To visit OpenPLS, navigate to https://storage.googleapis.com/${WEB_FRONTEND/gs:\/\//}/index.html"
-echo $LIST_FUNCTION
+LIST_FUNCTION_URL=$(terraform output function_list_projects)
+
+# Build site
+echo "const oauth_client_id = '${OAUTH_CLIENT_ID}'" > js/constants.js
+echo "const function_list_projects = '${LIST_FUNCTION_URL}'" >> js/constants.js
+jekyll build
+gsutil cp -r _site/** $WEB_FRONTEND
+echo "To visit OpenPLS, navigate to https://storage.googleapis.com/${WEB_FRONTEND/gs:\/\//}/index.html or use jekyll serve to run locally"
