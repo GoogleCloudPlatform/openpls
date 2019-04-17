@@ -1,0 +1,8 @@
+*~
+.terraform
+.jekyll-metadata
+credentials.json
+oauth_credentials
+_site
+dist
+js/constants.js
