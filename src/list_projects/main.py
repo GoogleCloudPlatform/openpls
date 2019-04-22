@@ -31,7 +31,7 @@ def list_projects(request):
         headers = {
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Methods': 'GET',
-            'Access-Control-Allow-Headers': 'Authorization',
+            'Access-Control-Allow-Headers': '*',
             'Access-Control-Max-Age': '3600',
             'Access-Control-Allow-Credentials': 'true'
         }
@@ -62,23 +62,27 @@ def list_projects(request):
 
     dir_re = re.compile('[^/]*/([^/]*)/.*csv')
     projects = []
+    tzoffset_mins = int(request.headers["X-Timezone-Offset"]) if "X-Timezone-Offset" in request.headers else 0
     for blob in contents:
         re_result = dir_re.match(blob.name)
         if re_result:
             entry = {}
-            entry["created"] = blob.time_created.strftime("%d %b %Y %I:%M%p")
+            created_tz = blob.time_created - timedelta(minutes=tzoffset_mins)
+            entry["created"] = created_tz.strftime("%d %b %Y %I:%M%p")
             entry["id"] = re_result.group(1)
             projects.append(entry)
 
+    new_project_uuid = str(uuid.uuid4())
     new_project_path = data_bucket.blob(
-        id_info["sub"] + "/" + str(uuid.uuid4()) + "/" + "data.csv")
+        id_info["sub"] + "/" + new_project_uuid + "/" + "data.csv")
 
     signed_url = new_project_path.create_resumable_upload_session(origin=request.headers["origin"])
 
     output = {
         "projects": projects,
         "subscriber_id": id_info["sub"],
-        "new_project_upload_url": signed_url
+        "new_project_upload_url": signed_url,
+        "new_project_uuid": new_project_uuid
     }
 
     return (json.dumps(output), 200, headers)

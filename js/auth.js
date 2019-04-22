@@ -20,6 +20,11 @@ function registerRenderer(renderer) {
     renderers.push(renderer);
 }
 
+function toggleAuthStatus(signedIn) {
+    $("#g-signout-btn").css("display", signedIn ? "block" : "none")
+    $("#login").css("display", signedIn ? "none" : "block")
+}
+
 function onSignIn(googleUser) {
     id_token = googleUser.getAuthResponse().id_token;
     profile = googleUser.getBasicProfile();
@@ -34,11 +39,8 @@ function signOut() {
     auth2.signOut().then(function () {
         signedOut();
     });
-}
-
-function toggleAuthStatus(signedIn) {
-    $("#g-signout-btn").css("display", signedIn ? "block" : "none")
-    $("#login").css("display", signedIn ? "none" : "block")
+    $("#main").css("display", "none")
+    toggleAuthStatus(false)
 }
 
 function init() {
@@ -59,12 +61,15 @@ function init() {
             onsuccess: onSignIn,
             onfailure: null
         });
+        toggleAuthStatus(false);
     });
 }
 
 function fetch_auth_header() {
+    const timezone_offset = String(new Date().getTimezoneOffset());
     const headers = new Headers();
     headers.append("Authorization", "Bearer " + id_token);
+    headers.append("X-Timezone-Offset", timezone_offset);
     return headers;
 }
 
@@ -77,4 +82,11 @@ function fetch_with_auth(url, callback) {
             }
             response.json().then(callback);
         });
+}
+
+function fa_button(icon, title, style = "", onclick = "") {
+    return `<a href="#" title="${title}" style="${style}" onclick="${onclick}" class="fa-stack fa-lg">
+    <i class="fa fa-circle fa-stack-2x"></i>
+    <i class="fa ${icon} fa-stack-1x fa-inverse"></i>
+  </span>`;
 }
