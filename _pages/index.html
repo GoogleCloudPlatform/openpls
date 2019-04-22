@@ -4,4 +4,17 @@ layout: default
 ---
 <script src="js/projects.js"></script>
 <div id="content" class="container bg-light py-3 px-lg-5 py-lg-5">
+    <img src="images/spinner.gif" id="loading"/>
+    <div id="projects_list" style="display:none">
+        <h3>Projects</h3>
+        <ul class="list-group" id="projects">
+        </ul>
+        <br />
+    </div>
+    <form>
+        <h3>Create new project</h3>
+        <p>Upload a CSV file to create a new project:</p>
+        <input type="file" id="fileupload" class="btn btn-default">
+        <button type="button" id="submit" class="btn btn-primary">Upload</button>
+    </form>
 </div>

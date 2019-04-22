@@ -12,15 +12,12 @@ include: ['_pages']
 # The following items will not be processed, by default. Create a custom list
 # to override the default setting.
 exclude:
-  - provision.sh
-  - terraform.tf
-  - CONTRIBUTING.md
-  - README.md
+  - "*.sh"
+  - "*.tf"
+  - "*.md"
   - LICENSE
   - terraform
   - src
-  - credentials.json
-  - oauth_credentials
-  - Gemfile
-  - Gemfile.lock
   - dist
+  - "*credentials*"
+  - "Gemfile*"

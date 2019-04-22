@@ -17,7 +17,9 @@ terraform {
 
 resource "google_project_services" "apis" {
   project    = "${var.project}"
-  services   = ["serviceusage.googleapis.com", "storage-component.googleapis.com", "storage-api.googleapis.com", "cloudfunctions.googleapis.com", "pubsub.googleapis.com", "logging.googleapis.com"]
+  services   = ["serviceusage.googleapis.com", "storage-component.googleapis.com", "storage-api.googleapis.com",
+  "cloudfunctions.googleapis.com", "pubsub.googleapis.com", "logging.googleapis.com", "iam.googleapis.com",
+  "iamcredentials.googleapis.com", "cloudresourcemanager.googleapis.com"]
 }
 
 resource "google_storage_bucket" "web_bucket" {
@@ -41,6 +43,28 @@ resource "google_storage_bucket" "data_bucket" {
   project = "${var.project}"
 }
 
+resource "google_service_account" "functions" {
+  account_id   = "cloud-functions"
+  display_name = "Cloud functions service account"
+}
+
+resource "null_resource" "delay" {
+  provisioner "local-exec" {
+    command = "sleep 5"
+  }
+  triggers = {
+    "before" = "${google_service_account.functions.id}"
+  }
+}
+
+resource "google_project_iam_binding" "token_creator" {
+  project = "${var.project}"
+  role    = "roles/iam.serviceAccountTokenCreator"
+  members = [
+    "serviceAccount:${google_service_account.functions.email}"
+  ]
+}
+
 data "archive_file" "list_projects" {
   type = "zip"
   source_dir = "src/list_projects"
@@ -59,6 +83,7 @@ resource "google_cloudfunctions_function" "list_projects" {
   source_archive_bucket = "${google_storage_bucket.data_bucket.name}"
   source_archive_object = "${google_storage_bucket_object.list_projects_function.name}"
   trigger_http = true
+  service_account_email = "${google_service_account.functions.email}"
   project = "${var.project}"
   region = "${var.region}"
   runtime = "python37"

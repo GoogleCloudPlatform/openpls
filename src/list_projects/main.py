@@ -15,11 +15,15 @@
 
 from google.oauth2 import id_token
 from google.auth.transport import requests
-import json, os
+from google.auth import compute_engine
+import json, os, re, uuid
+import google.auth
+from datetime import datetime, timedelta
+from google.cloud import storage
+
 
 def list_projects(request):
-    response = {}
-    
+
     # Set CORS headers for the preflight request
     if request.method == 'OPTIONS':
         # Allows GET requests from any origin with the Content-Type
@@ -33,15 +37,15 @@ def list_projects(request):
         }
 
         return ('', 204, headers)
-        
+
     if request.method == 'GET':
         client_id = os.getenv("OAUTH_CLIENT_ID")
         token = request.headers['Authorization'].split(' ').pop()
-        request = requests.Request()
-        id_info = id_token.verify_oauth2_token(token, request, client_id)
+        auth_request = requests.Request()
+        id_info = id_token.verify_oauth2_token(token, auth_request, client_id)
         if not id_info:
             return 'Unauthorized', 401
-        response["sub"] = id_info["sub"]
+
     # Set CORS headers for the main request
     headers = {
         'Access-Control-Allow-Origin': '*',
@@ -49,4 +53,32 @@ def list_projects(request):
         'Content-Type': 'text/json'
     }
 
-    return (json.dumps(response), 200, headers)
+    credentials, project = google.auth.default()
+    storage_client = storage.Client(project, credentials)
+    data_bucket = storage_client.lookup_bucket(os.getenv("DATA_BUCKET"))
+    if data_bucket is None:
+        return "Couldn't find data bucket " + os.getenv("DATA_BUCKET"), 500
+    contents = data_bucket.list_blobs(prefix=id_info["sub"])
+
+    dir_re = re.compile('[^/]*/([^/]*)/.*csv')
+    projects = []
+    for blob in contents:
+        re_result = dir_re.match(blob.name)
+        if re_result:
+            entry = {}
+            entry["created"] = blob.time_created.strftime("%d %b %Y %I:%M%p")
+            entry["id"] = re_result.group(1)
+            projects.append(entry)
+
+    new_project_path = data_bucket.blob(
+        id_info["sub"] + "/" + str(uuid.uuid4()) + "/" + "data.csv")
+
+    signed_url = new_project_path.create_resumable_upload_session(origin=request.headers["origin"])
+
+    output = {
+        "projects": projects,
+        "subscriber_id": id_info["sub"],
+        "new_project_upload_url": signed_url
+    }
+
+    return (json.dumps(output), 200, headers)
