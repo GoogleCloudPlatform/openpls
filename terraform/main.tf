@@ -65,6 +65,35 @@ resource "google_project_iam_binding" "token_creator" {
   ]
 }
 
+data "archive_file" "project" {
+  type = "zip"
+  source_dir = "src/project"
+  output_path = "dist/project.zip"
+}
+
+resource "google_storage_bucket_object" "project_function" {
+  name   = "functions/project${data.archive_file.project.output_sha}.zip"
+  bucket = "${google_storage_bucket.data_bucket.name}"
+  source = "${data.archive_file.project.output_path}"
+}
+
+resource "google_cloudfunctions_function" "project" {
+  name   = "project"
+  available_memory_mb = 128
+  source_archive_bucket = "${google_storage_bucket.data_bucket.name}"
+  source_archive_object = "${google_storage_bucket_object.project_function.name}"
+  trigger_http = true
+  service_account_email = "${google_service_account.functions.email}"
+  project = "${var.project}"
+  region = "${var.region}"
+  runtime = "python37"
+  timeout = 10
+  entry_point = "project"
+  environment_variables = {
+    DATA_BUCKET = "${google_storage_bucket.data_bucket.name}"
+    OAUTH_CLIENT_ID = "${var.oauth_client_id}"
+  }
+}
 data "archive_file" "list_projects" {
   type = "zip"
   source_dir = "src/list_projects"
@@ -99,6 +128,10 @@ output "web_frontend" {
   value       = "${google_storage_bucket.web_bucket.url}"
 }
 
-output "function_list_projects" {
+output "function_list_projects_url" {
   value       = "${google_cloudfunctions_function.list_projects.https_trigger_url}"
+}
+
+output "function_project_url" {
+  value       = "${google_cloudfunctions_function.project.https_trigger_url}"
 }

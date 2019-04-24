@@ -16,13 +16,12 @@
 from google.oauth2 import id_token
 from google.auth.transport import requests
 from google.auth import compute_engine
-import json, os, re, uuid
+import json, os, uuid
 import google.auth
 from datetime import datetime, timedelta
 from google.cloud import storage
 
-
-def list_projects(request):
+def project(request):
 
     # Set CORS headers for the preflight request
     if request.method == 'OPTIONS':
@@ -55,36 +54,42 @@ def list_projects(request):
     data_bucket = storage_client.lookup_bucket(os.getenv("DATA_BUCKET"))
     if data_bucket is None:
         return "Couldn't find data bucket " + os.getenv("DATA_BUCKET"), 500
-    index_blob = data_bucket.blob(id_info["sub"] + "/index.json")
-    try:
-        index = json.loads(index_blob.download_as_string())
-    except:
-        index = {}
 
-    contents = data_bucket.list_blobs(prefix=id_info["sub"])
+    response_data = ""
 
-    dir_re = re.compile('[^/]*/([^/]*)/.*csv')
-    projects = []
-    tzoffset_mins = int(request.headers["X-Timezone-Offset"]) if "X-Timezone-Offset" in request.headers else 0
-    for blob in contents:
-        re_result = dir_re.match(blob.name)
-        if re_result:
-            entry = {}
-            created_tz = blob.time_created - timedelta(minutes=tzoffset_mins)
-            entry["created"] = created_tz.strftime("%d %b %Y %I:%M%p")
-            entry["id"] = re_result.group(1)
-            entry["name"] = index[entry["id"]] if entry["id"] in index else ""
-            projects.append(entry)
+    if request.method == 'DELETE':
+        contents = data_bucket.list_blobs(prefix=id_info["sub"] + request.path)
+        for blob in contents:
+            blob.delete()
+        index_blob = data_bucket.blob(id_info["sub"] + "/index.json")
+        try:
+            index = json.loads(index_blob.download_as_string())
+        except:
+            index = {}
+        index.pop(request.path[1:], "")
+        index_blob.upload_from_string(json.dumps(index), "application/json")            
 
-    new_project_uuid = str(uuid.uuid4())
-    new_project_path = data_bucket.blob(
-        id_info["sub"] + "/" + new_project_uuid + "/" + "data.csv")
-    signed_url = new_project_path.create_resumable_upload_session(origin=request.headers["origin"])
+    if request.method == 'POST':
+        config = request.get_json(silent=True)
+        if config is None:
+            print("Config was not in json format")
+            return "Config must be supplied in JSON format", 400, headers
+        config_blob = data_bucket.blob(id_info["sub"] + request.path + "/config.json")
+        config_blob.upload_from_string(json.dumps(config), "application/json")
+        if "name" in config:
+            index_blob = data_bucket.blob(id_info["sub"] + "/index.json")
+            try:
+                index = json.loads(index_blob.download_as_string())
+            except:
+                index = {}
+            index[request.path[1:]] = config["name"]
+            index_blob.upload_from_string(json.dumps(index), "application/json")            
 
-    output = {
-        "projects": projects,
-        "new_project_upload_url": signed_url,
-        "new_project_uuid": new_project_uuid
-    }
+    if request.method == 'GET':
+        config_blob = data_bucket.blob(id_info["sub"] + request.path + "/config.json")
+        try:
+            response_data = config_blob.download_as_string()
+        except:
+            response_data = "{}"
 
-    return json.dumps(output), 200, headers
+    return response_data, 200, headers

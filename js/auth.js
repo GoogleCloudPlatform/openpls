@@ -65,23 +65,10 @@ function init() {
     });
 }
 
-function fetch_auth_header() {
+function add_auth_header(xhr) {
     const timezone_offset = String(new Date().getTimezoneOffset());
-    const headers = new Headers();
-    headers.append("Authorization", "Bearer " + id_token);
-    headers.append("X-Timezone-Offset", timezone_offset);
-    return headers;
-}
-
-function fetch_with_auth(url, callback) {
-    const init = { method: 'GET', mode: 'cors', headers: fetch_auth_header() }
-    fetch(url, init)
-        .then(function (response) {
-            if (!response.ok) {
-                throw new Error('HTTP error, status ' + response.status);
-            }
-            response.json().then(callback);
-        });
+    xhr.setRequestHeader("Authorization", "Bearer " + id_token);
+    xhr.setRequestHeader("X-Timezone-Offset", timezone_offset);
 }
 
 function fa_button(icon, title, style = "", onclick = "") {
