@@ -44,7 +44,7 @@ $(document).ready(function () {
 
 function getProjectConfig(id, callback) {
     let xhr = new XMLHttpRequest();
-    xhr.open("GET", function_project_url + "/" + id);
+    xhr.open("GET", project_function_url + "/" + id);
     xhr.onload = function() {
         callback(xhr.response);
     };
@@ -54,7 +54,7 @@ function getProjectConfig(id, callback) {
 
 function setProjectConfig(id, config, callback=null) {
     let xhr = new XMLHttpRequest();
-    xhr.open("POST", function_project_url + "/" + id);
+    xhr.open("POST", project_function_url + "/" + id);
     add_auth_header(xhr);
     if (callback != null) {
         xhr.onload = function() {
@@ -74,7 +74,7 @@ function deleteProject(id) {
     sure = confirm("Are you sure you want to delete this project?");
     if (sure) {
         let xhr = new XMLHttpRequest();
-        xhr.open("DELETE", function_project_url + "/" + id);
+        xhr.open("DELETE", project_function_url + "/" + id);
         add_auth_header(xhr);
         xhr.timeout = 10000;
         xhr.onload = function () {
@@ -98,7 +98,7 @@ function renameProject(id, name) {
 
 registerRenderer(function () {
     let xhr = new XMLHttpRequest();
-    xhr.open("GET", function_list_projects_url);
+    xhr.open("GET", list_projects_function_url);
     add_auth_header(xhr);
     xhr.onload = function () {
         data = JSON.parse(xhr.response);

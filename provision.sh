@@ -67,10 +67,16 @@ WEB_FRONTEND=$(terraform output web_frontend)
 LIST_PROJECTS_FUNCTION_URL=$(terraform output list_projects.function_url)
 PROJECT_FUNCTION_URL=$(terraform output project.function_url)
 
-# Build site
+# Pass function URLs to client js
 echo "const oauth_client_id = '${OAUTH_CLIENT_ID}'" > js/constants.js
-echo "const function_list_projects_url = '${LIST_PROJECTS_FUNCTION_URL}'" >> js/constants.js
-echo "const function_project_url = '${PROJECT_FUNCTION_URL}'" >> js/constants.js
+shopt -s nullglob
+for FUNCTION in src/*; do
+    TERRAFORM_CMD="terraform output ${FUNCTION#*/}.function_url"
+    echo $TERRAFORM_CMD
+    echo "const ${FUNCTION#*/}_function_url = '$($TERRAFORM_CMD)'" >> js/constants.js
+done
+
+# Build site
 jekyll build
 gsutil cp -r _site/** $WEB_FRONTEND
 echo "To visit OpenPLS, navigate to https://storage.googleapis.com/${WEB_FRONTEND/gs:\/\//}/index.html or use jekyll serve to run locally"
