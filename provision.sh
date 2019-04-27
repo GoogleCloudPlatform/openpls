@@ -64,13 +64,13 @@ export GOOGLE_APPLICATION_CREDENTIALS=credentials.json
 terraform init -backend-config="bucket=${BUCKET}" -backend-config="prefix=terraform/state" -backend-config="project=${PROJECT_ID}" -backend-config="credentials=credentials.json" terraform
 terraform apply -var project="${PROJECT}" -var oauth_client_id="${OAUTH_CLIENT_ID}" terraform
 WEB_FRONTEND=$(terraform output web_frontend)
-FUNCTION_LIST_PROJECTS_URL=$(terraform output function_list_projects_url)
-FUNCTION_PROJECT_URL=$(terraform output function_project_url)
+LIST_PROJECTS_FUNCTION_URL=$(terraform output list_projects.function_url)
+PROJECT_FUNCTION_URL=$(terraform output project.function_url)
 
 # Build site
 echo "const oauth_client_id = '${OAUTH_CLIENT_ID}'" > js/constants.js
-echo "const function_list_projects_url = '${FUNCTION_LIST_PROJECTS_URL}'" >> js/constants.js
-echo "const function_project_url = '${FUNCTION_PROJECT_URL}'" >> js/constants.js
+echo "const function_list_projects_url = '${LIST_PROJECTS_FUNCTION_URL}'" >> js/constants.js
+echo "const function_project_url = '${PROJECT_FUNCTION_URL}'" >> js/constants.js
 jekyll build
 gsutil cp -r _site/** $WEB_FRONTEND
 echo "To visit OpenPLS, navigate to https://storage.googleapis.com/${WEB_FRONTEND/gs:\/\//}/index.html or use jekyll serve to run locally"
