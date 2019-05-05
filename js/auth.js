@@ -70,10 +70,3 @@ function add_auth_header(xhr) {
     xhr.setRequestHeader("Authorization", "Bearer " + id_token);
     xhr.setRequestHeader("X-Timezone-Offset", timezone_offset);
 }
-
-function fa_button(icon, title, style = "", onclick = "") {
-    return `<a href="#" title="${title}" style="${style}" onclick="${onclick}" class="fa-stack fa-lg">
-    <i class="fa fa-circle fa-stack-2x"></i>
-    <i class="fa ${icon} fa-stack-1x fa-inverse"></i>
-  </span>`;
-}

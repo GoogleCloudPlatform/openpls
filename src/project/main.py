@@ -20,28 +20,14 @@ import json, os, uuid
 import google.auth
 from datetime import datetime, timedelta
 from google.cloud import storage
+import gcloud_flask_oauth_cors as oauth
 
 def project(request):
 
-    # Set CORS headers for the preflight request
-    if request.method == 'OPTIONS':
-        # Allows GET requests from any origin with the Content-Type
-        # header and caches preflight response for an 3600s
-        headers = {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': '*',
-            'Access-Control-Allow-Headers': '*',
-            'Access-Control-Max-Age': '3600',
-            'Access-Control-Allow-Credentials': 'true'
-        }
-        return '', 204, headers
-
-    client_id = os.getenv("OAUTH_CLIENT_ID")
-    token = request.headers['Authorization'].split(' ').pop()
-    auth_request = requests.Request()
-    id_info = id_token.verify_oauth2_token(token, auth_request, client_id)
-    if not id_info:
-        return 'Unauthorized', 401
+    auth = oauth.Auth(os.getenv("OAUTH_CLIENT_ID"))
+    id_info = auth.get_id_info(request)
+    if id_info is None:
+        return auth.get_response()
 
     # Set CORS headers for the main request
     headers = {
