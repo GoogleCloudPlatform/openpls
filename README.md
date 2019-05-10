@@ -2,7 +2,7 @@
 
 _Please note: This is not an officially supported Google product._
 
-This app was built to demonstrate how to build an application consisting of a static website on the front end, which uses JavaScript talking to Cloud Functions on the back end.
+This app demonstrates a bunch of Google Cloud Platform technologies working together, including cloud storage and cloud functions, with a static website as the front end.
 
 ## Building the project
 
