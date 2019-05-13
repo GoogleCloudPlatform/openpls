@@ -2,7 +2,12 @@
 
 _Please note: This is not an officially supported Google product._
 
-This app demonstrates a bunch of Google Cloud Platform technologies working together, including cloud storage and cloud functions, with a static website as the front end.
+OpenPLS is a tool that lets you perform Partial Least Squares Path Modeling on datasets using a GUI interface. You can upload datasets in the form of csv file, design the model through the GUI, and then see the results.
+
+OpenPLS was also created for a couple of other reasons:
+
+* To show how to build cloud native apps using GCP in the [JAM](https://jamstack.org/) paradigm;
+* To provide a template that you can start with to create your own applications using this paradigm.
 
 ## Building the project
 

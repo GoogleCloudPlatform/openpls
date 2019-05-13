@@ -13,12 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from google.oauth2 import id_token
-from google.auth.transport import requests
-from google.auth import compute_engine
 import json, os, uuid
+from google.auth.transport import requests
 import google.auth
-from datetime import datetime, timedelta
 from google.cloud import storage
 import gcloud_flask_oauth_cors as oauth
 
